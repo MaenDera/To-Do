@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Set the character set and viewport for the page -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Style section for the page -->
+    <style>
+        body {
+            background-color: black;
+            color: limegreen;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            margin: 20vh 0;
+            font-size: 20px;
+        }
+
+        span {
+            display: inline-block;
+            vertical-align: baseline;
+            animation: blink 0.8s infinite;
+            color: limegreen;
+        }
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        #control {
+            background-color: black;
+            color: limegreen;
+            font-family: 'Courier New', monospace;
+            font-size: 20px;
+            display: block;
+            margin: auto;
+            width: 20%;
+        }
+
+        .task,
+        input[type="checkbox"] {
+            margin-bottom: 10px;
+        }
+        
+        input[type="checkbox"] {
+            margin-left: 50%;
+        }
+
+        .task {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-right: 30%;
+        }
+        
+        .delete-button {
+            background-color: rgb(204, 0, 0);
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-right: 30px;
+        }
+        
+        .task p {
+            margin: 0; 
+        }
+        .completed {
+            text-decoration: line-through;
+            color: grey;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header section with a title -->
+    <h1 style="user-select: none;">To-do<span>:</span></h1>
+    <br>
+    
+    <!-- Input control for adding tasks -->
+    <input id="control" placeholder="Enter A Task">
+    <br>
+
+    <!-- Script section for JavaScript functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Get the input element
+            let put = document.getElementById("control");
+
+            // Load tasks from local storage on page load
+            loadTasksFromLocalStorage();
+
+            // Event listener for adding tasks when Enter key is pressed
+            put.addEventListener('keypress', (event) => {
+                if (event.key === "Enter") {
+                    let cvalue = put.value;
+                    addTaskToDOM(cvalue, false);
+                    storeTaskInLocalStorage(cvalue, false);
+                    put.value = '';
+                }
+            });
+
+            // Event listener for checkboxes to reload the page when changed
+            let checkboxes = document.getElementsByClassName('ref');
+            for (let checkbox of checkboxes) {
+                checkbox.addEventListener('change', function(){
+                    location.reload();
+                });
+            }
+
+            // Function to store a task in local storage
+            function storeTaskInLocalStorage(task, isCompleted) {
+                let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+                tasks.push({ task, isCompleted });
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+
+            // Function to load tasks from local storage and display on the page
+            function loadTasksFromLocalStorage() {
+                let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+                tasks.forEach(taskObj => {
+                    addTaskToDOM(taskObj.task, taskObj.isCompleted);
+                });
+            }
+
+            // Function to add a task to the DOM
+            function addTaskToDOM(task, isCompleted) {
+                let taskContainer = document.createElement('div');
+                taskContainer.className = 'task';
+
+                let checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'ref';
+                checkbox.checked = isCompleted;
+                checkbox.addEventListener('change', function () {
+                    updateTaskStatus(task, checkbox.checked);
+                });
+
+                let p = document.createElement('p');
+                p.textContent = task;
+                if (isCompleted) {
+                    p.classList.add('completed');
+                }
+
+                let deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.textContent = 'Delete';
+                deleteButton.addEventListener('click', function () {
+                    deleteTask(task);
+                    taskContainer.remove();
+                });
+
+                taskContainer.appendChild(checkbox);
+                taskContainer.appendChild(p);
+                taskContainer.appendChild(deleteButton);
+                document.body.appendChild(taskContainer);
+            }
+
+            // Function to update the status of a task in local storage
+            function updateTaskStatus(task, isCompleted) {
+                let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+                let updatedTasks = tasks.map(taskObj => {
+                    if (taskObj.task === task) {
+                        return { ...taskObj, isCompleted };
+                    }
+                    return taskObj;
+                });
+                localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+            }
+
+            // Function to delete a task from local storage
+            function deleteTask(task) {
+                let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+                let updatedTasks = tasks.filter(taskObj => taskObj.task !== task);
+                localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+            }
+        });
+    </script>
+</body>
+
+</html>
